@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { TrashIcon, ShareIcon } from "lucide-react";
 
 declare global {
   interface Window {
@@ -15,6 +16,8 @@ declare global {
     };
   }
 }
+
+//*Embedding Code
 
 const extractVideoId = (url: string): string | null => {
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -43,7 +46,8 @@ const extractLinkedInPostId = (url: string): string | null => {
   return match ? match[1] : null;
 };
 
-// Platform icons
+//* Platform icons
+
 const PlatformIcon: React.FC<{ type: string }> = ({ type }) => {
   switch (type) {
     case "youtube":
@@ -113,41 +117,34 @@ const PlatformIcon: React.FC<{ type: string }> = ({ type }) => {
       );
     case "eraser":
       return (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-blue-500"
-        >
-          <path d="M20 14c.5.5.5 1 0 1.5l-4 4a1 1 0 0 1-1.5 0L2 7c-.5-.5-.5-1 0-1.5l4-4a1 1 0 0 1 1.5 0Z" />
-          <path d="M10 4 4 10" />
-          <path d="m20 9-9 9" />
-          <path d="m21 15-2 2" />
+        <svg viewBox="0 0 1699 660" width="24" height="24" className="scale-90">
+          <path
+            fill="#EC2C40"
+            d="M804.7,660.3H50c-38.8,0-62.8-55-42.7-98.2L253,31.4C262,11.9,278.2,0,295.7,0h509V660.3z"
+          />
+          <path
+            fill="#00A9E5"
+            d="M891.3,0L1646,0c38.8,0,62.8,55,42.7,98.2L1443,628.9c-9,19.5-25.2,31.4-42.7,31.4h-509V0z"
+          />
         </svg>
       );
     case "excalidraw":
       return (
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
+          role="img"
           viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-purple-500"
+          xmlns="http://www.w3.org/2000/svg"
+          id="Excalidraw--Streamline-Simple-Icons"
+          height="24"
+          width="24"
         >
-          <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-          <path d="M15 2v4h4" />
-          <path d="M13.4 14.8 19 9.2" />
+          <desc>Excalidraw Streamline Icon: https://streamlinehq.com</desc>
+          <title>Excalidraw</title>
+          <path
+            d="M23.9428 19.8058a0.1962 0.1962 0 0 0 -0.1679 -0.0337c-1.26 -1.8552 -2.8727 -3.6104 -4.4186 -5.3152l-0.2521 -0.284c-0.0016 -0.0732 -0.0667 -0.1207 -0.1342 -0.1504 -0.0284 -0.0277 -0.0562 -0.0558 -0.0843 -0.0837 -0.0505 -0.1005 -0.1685 -0.1673 -0.2858 -0.1005 -0.4706 0.2347 -0.9068 0.5855 -1.3274 0.9195 -0.5536 0.4345 -1.1085 0.8695 -1.6296 1.354a5.0577 5.0577 0 0 0 -0.5879 0.6185c-0.0842 0.1168 -0.0168 0.2172 0.0843 0.2672 -0.3701 0.3677 -0.7402 0.736 -1.109 1.1198a0.1896 0.1896 0 0 0 -0.0506 0.1342c0 0.05 0.0337 0.1 0.0668 0.1168l0.6559 0.5012v0.0169c0.9237 0.9194 2.5538 2.1729 4.2844 3.5268 0.2515 0.201 0.5205 0.4014 0.7727 0.6017 0.1173 0.1342 0.2346 0.2847 0.3357 0.4182 0.0506 0.0662 0.1685 0.0837 0.2353 0.0331 0.0337 0.0337 0.0843 0.0668 0.118 0.1005a0.2395 0.2395 0 0 0 0.1004 0.0337 0.1534 0.1534 0 0 0 0.1348 -0.0668 0.2371 0.2371 0 0 0 0.0331 -0.1004c0.0175 0 0.0169 0.0168 0.0337 0.0168a0.1915 0.1915 0 0 0 0.1348 -0.0505l3.058 -3.3265c0.1198 -0.1159 0.0135 -0.2668 -0.0005 -0.2672zm-7.6277 -0.1336 -1.5459 -1.1704 -0.151 -0.0998c-0.0337 -0.0169 -0.0674 -0.0506 -0.1011 -0.0668l-0.1174 -0.1005c0.6597 -0.659 1.3297 -1.3074 1.9996 -1.9557 -0.4874 0.4844 -1.4622 1.9057 -1.2606 2.3733 0.0023 0 0.0186 0.0419 0.0674 0.0842 0.3704 0.311 0.7398 0.6232 1.109 0.9357zm4.0997 3.1261 -1.277 -0.97a26.9056 26.9056 0 0 0 -1.5795 -1.5044c0.689 0.5181 1.2769 0.9694 1.3611 1.053 0.6722 0.585 0.6379 0.485 1.0922 0.8696l0.5542 0.4008c-0.0735 0.103 -0.151 0.1477 -0.151 0.151zm0.3357 0.2503 -0.0337 -0.0168c0.0506 -0.0331 0.1011 -0.0668 0.1517 -0.1168zM0.5885 3.4751c0.0331 0.2172 0.0843 0.4344 0.1174 0.6354 0.2015 1.103 0.4031 2.1061 0.7726 2.8583l0.1516 0.568c0.0506 0.2173 0.1342 0.485 0.2185 0.5519 0.8568 0.7521 2.1674 1.8714 3.5785 2.9419a0.1775 0.1775 0 0 0 0.2185 0s0 0.0162 0.0168 0.0162a0.1528 0.1528 0 0 0 0.118 0.0506 0.1912 0.1912 0 0 0 0.1341 -0.0506c1.798 -1.9887 3.1418 -3.6267 4.0997 -4.9974 0.0674 -0.0668 0.0843 -0.1673 0.0843 -0.251 0.0668 -0.0668 0.1173 -0.1504 0.1847 -0.2004 0.0668 -0.0668 0.0668 -0.184 0 -0.2346l-0.0168 -0.0163c0 -0.033 -0.0169 -0.0836 -0.0506 -0.1005 -0.42 -0.4007 -0.722 -0.6848 -1.0416 -0.9856A93.5546 93.5546 0 0 1 6.822 1.9876c-0.0169 -0.0169 -0.0337 -0.0337 -0.0674 -0.0337 -0.3358 -0.1168 -1.0248 -0.2341 -1.8817 -0.3845C3.596 1.3527 1.865 1.0519 0.3027 0.583c0 0 -0.1011 0 -0.118 0.0169L0.1348 0.6505C0.0498 0.7139 0.0222 0.7058 0 0.7167c0.017 0.1005 0.017 0.1673 0.0506 0.2846 0 0.0331 0.0673 0.3009 0.0673 0.334zm7.1909 4.7802 -0.0337 0.0337a0.0362 0.0362 0 0 1 0.0337 -0.0337zM6.553 2.238c0.101 0.1005 0.5211 0.5019 0.6216 0.5855 -0.4369 -0.201 -1.5284 -0.7022 -2.0333 -0.8695 0.5043 0.1005 1.1933 0.201 1.4117 0.284ZM0.7901 1.4027c0.2521 0.4344 0.4537 1.9388 0.6553 3.4095 -0.118 -0.4682 -0.2016 -0.9357 -0.3027 -1.3708C0.9917 2.673 0.84 1.9876 0.6385 1.3858c0.1232 0 0.1516 0.0212 0.1516 0.0169zm-0.2858 -0.3683c0 -0.0162 0 -0.033 -0.0169 -0.033 0.0843 0 0.1342 0.0168 0.2016 0.0499 0.0006 0.0057 -0.1448 -0.0169 -0.1847 -0.0169zM23.6738 0.8172c0.0169 -0.0662 -0.3358 -0.367 -0.2184 -0.3845 0.2527 -0.0163 0.2527 -0.4008 0 -0.4008 -0.3358 0.0169 -0.6884 0.0999 -1.008 0.1504 -0.5878 0.1168 -1.1926 0.2341 -1.781 0.3671 -1.327 0.2846 -2.6375 0.5855 -3.9481 0.937 -0.4032 0.1167 -0.857 0.2003 -1.2432 0.4007 -0.1348 0.0668 -0.118 0.2004 -0.0506 0.284 -0.0337 0.0169 -0.0505 0.0169 -0.0842 0.0337 -0.1174 0.0169 -0.2185 0.0337 -0.3358 0.05 -0.1011 0.0168 -0.1516 0.1004 -0.1348 0.201 0 0.0162 0.0169 0.0499 0.0169 0.0661 -0.7059 0.9363 -1.4954 1.9226 -2.3523 2.9757 -0.84 0.9694 -1.7306 1.9893 -2.6212 3.0424 -2.8396 3.3096 -6.0487 7.0705 -9.5936 10.38a0.1613 0.1613 0 0 0 0 0.2341c0.0169 0.0163 0.0337 0.0331 0.0506 0.0331 -0.0506 0.0506 -0.1011 0.0843 -0.1517 0.1336 -0.0337 0.0337 -0.0505 0.0668 -0.0505 0.1005a0.364 0.364 0 0 0 -0.0668 0.0837c-0.0674 0.0667 -0.0674 0.1835 0.0169 0.234 0.0667 0.0662 0.1847 0.0662 0.2346 -0.0168 0.0175 -0.0169 0.0175 -0.0337 0.0337 -0.0337a0.2648 0.2648 0 0 1 0.3701 0c0.2016 0.2178 0.4032 0.435 0.588 0.6186l-0.4201 -0.3508c-0.0674 -0.0668 -0.1847 -0.05 -0.2347 0.0168 -0.068 0.0662 -0.0511 0.1835 0.0163 0.234l4.4691 3.7273c0.0337 0.0337 0.0674 0.0337 0.118 0.0337 0.0505 0 0.0842 -0.0169 0.1173 -0.0506l0.101 -0.0999c0.017 0.0163 0.05 0.0163 0.0669 0.0163 0.0505 0 0.0842 -0.0163 0.118 -0.05 6.0486 -6.0505 10.9216 -10.6141 16.4997 -14.6927 0.05 -0.0331 0.0668 -0.1 0.0668 -0.1505 0.0674 0 0.118 -0.05 0.151 -0.1167 1.0254 -3.1255 1.227 -5.9007 1.2938 -7.2709 0 -0.0579 0.0169 -0.0371 0.0169 -0.0668 0.0168 -0.0337 0.0168 -0.0505 0.0168 -0.0505a0.9784 0.9784 0 0 0 -0.0668 -0.6186zm-10.82 4.9144c0.2684 -0.3008 0.5374 -0.6186 0.8064 -0.9026 -1.7306 2.2734 -4.6033 5.7665 -8.67 9.9288C7.7626 11.699 10.5517 8.54 12.854 5.7316ZM5.1414 23.4662c-0.0162 -0.0168 -0.0162 -0.0168 0 -0.0168zm2.5033 -2.156c0.1348 -0.1505 0.2695 -0.284 0.4206 -0.4345 0 0 0 0.0163 0.0168 0.0163 -0.2236 0.1978 -0.4334 0.4182 -0.4374 0.4182zm0.6896 -0.6686c0.0994 -0.0993 0.14 -0.1724 0.2852 -0.3177 0.9917 -1.0193 2.0164 -2.0393 3.058 -3.0755l0.0169 -0.0168c0.2521 -0.2004 0.5542 -0.4177 0.8232 -0.6186a228.0627 228.0627 0 0 0 -4.1833 4.0286zm6.5187 -16.732c-0.5543 0.719 -1.1759 1.6716 -1.697 2.4238 -1.6463 2.3733 -6.9393 8.1735 -7.0566 8.274A1189.6473 1189.6473 0 0 1 1.26 19.204l-0.1005 0.1005c-0.0843 -0.1005 -0.0843 -0.251 0.0168 -0.3346 7.476 -7.0037 12.0132 -12.837 13.845 -15.3944 -0.0506 0.1167 -0.0843 0.2166 -0.1685 0.334zm2.9064 3.4269c-0.6716 -0.3851 -0.9905 -0.9869 -0.8064 -1.5712l0.0506 -0.201a0.7753 0.7753 0 0 1 0.0842 -0.1666c0.1848 -0.301 0.4538 -0.5518 0.7564 -0.7023 0.0163 0 0.0331 0 0.05 -0.0168 -0.0169 -0.0337 -0.0169 -0.0837 -0.0169 -0.1336 0.0169 -0.1005 0.0843 -0.1673 0.2016 -0.1673 0.2016 0 0.8238 0.1841 1.059 0.3845 0.0669 0.05 0.1343 0.1168 0.2017 0.1836 0.0842 0.1004 0.2184 0.2677 0.2852 0.4013 0.0337 0.0169 0.0674 0.1841 0.118 0.2678 0.0336 0.1336 0.0667 0.284 0.0505 0.4176 -0.0169 0.0169 0 0.1167 -0.0169 0.1167a1.6055 1.6055 0 0 1 -0.2184 0.6186c-0.0307 0.0307 0.0064 0.0119 -0.0505 0.0668 -0.0843 0.1342 -0.2016 0.251 -0.319 0.3346 -0.3869 0.2672 -0.8238 0.3508 -1.2606 0.234 -0.1105 -0.0473 -0.1672 -0.0667 -0.1685 -0.0667zm4.3692 1.4039c0 0.0168 -0.0168 0.0499 0 0.0667 -0.0337 0 -0.0505 0.0169 -0.0842 0.0337 -1.3274 0.9689 -2.6212 1.9888 -3.915 3.0256 1.109 -0.9868 2.218 -1.9894 3.3776 -2.9756 0.3358 -0.3009 0.5711 -0.6854 0.6379 -1.1199l0.1685 -1.003v-0.0332c0.0842 -0.201 0.4032 -0.1173 0.3526 0.1 -0.0042 -0.0012 -0.1731 0.795 -0.5374 1.9057z"
+            fill="#6965db"
+            stroke-width="1"
+          ></path>
         </svg>
       );
     default:
@@ -182,11 +179,11 @@ interface EmbedProps {
     | "excalidraw";
   link: string;
   title?: string;
+  columns?: number;
 }
 
-const Embed: React.FC<EmbedProps> = ({ type, link, title }) => {
+const Embed: React.FC<EmbedProps> = ({ type, link, title, columns = 3 }) => {
   const embedRef = React.useRef<HTMLDivElement>(null);
-  // Removed unused error state
 
   // Handle Excalidraw popup error
   React.useEffect(() => {
@@ -258,6 +255,26 @@ const Embed: React.FC<EmbedProps> = ({ type, link, title }) => {
     }
   }, [type, link]);
 
+  // Use a responsive approach for Instagram embeds based on columns
+  const getResponsiveInstagramStyle = () => {
+    if (columns === 4) {
+      return {
+        maxWidth: "100%",
+        width: "100%",
+        overflow: "hidden",
+        margin: "0 auto",
+        display: "flex",
+        justifyContent: "center",
+      };
+    }
+
+    return {
+      maxWidth: "540px",
+      width: "100%",
+      margin: "0 auto",
+    };
+  };
+
   switch (type) {
     case "youtube": {
       const videoId = extractVideoId(link);
@@ -293,17 +310,15 @@ const Embed: React.FC<EmbedProps> = ({ type, link, title }) => {
     case "instagram": {
       const postId = extractInstagramId(link);
       return postId ? (
-        <div ref={embedRef} className="w-full overflow-hidden">
+        <div
+          ref={embedRef}
+          className="w-full overflow-hidden flex justify-center"
+        >
           <blockquote
             className="instagram-media"
             data-instgrm-captioned
             data-instgrm-permalink={`https://www.instagram.com/p/${postId}/`}
-            style={{
-              maxWidth: "540px",
-
-              width: "100%",
-              margin: "0 auto",
-            }}
+            style={getResponsiveInstagramStyle()}
           >
             <a href={link}>{title || "Instagram Post"}</a>
           </blockquote>
@@ -438,38 +453,38 @@ const Embed: React.FC<EmbedProps> = ({ type, link, title }) => {
 
 export { Embed };
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
+export function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      className={cn(
-        "bg-white rounded-xl border border-gray-300 p-4 shadow-sm",
-        className
-      )}
+      className={cn("rounded-xl border p-4 shadow-sm", className)}
       {...props}
     />
   );
 }
 
-function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
+export function CardHeader({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   return (
-    <div
-      className={cn("flex items-center justify-between gap-2 mb-4", className)}
+    <div className={cn("flex flex-col space-y-1.5", className)} {...props} />
+  );
+}
+
+export function CardTitle({ className, ...props }: React.ComponentProps<"h3">) {
+  return (
+    <h3
+      className={cn("font-semibold leading-none tracking-tight", className)}
       {...props}
     />
   );
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={cn("text-lg font-semibold flex items-center gap-2", className)}
-      {...props}
-    />
-  );
-}
-
-function CardContent({ className, ...props }: React.ComponentProps<"div">) {
-  return <div className={cn("flex-1", className)} {...props} />;
+export function CardContent({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  return <div className={cn("pt-0", className)} {...props} />;
 }
 
 function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
@@ -492,7 +507,7 @@ interface SocialCardProps extends React.ComponentProps<"div"> {
   hideControls?: boolean;
 }
 
-function SocialCard({
+export function SocialCard({
   type,
   link,
   title,
@@ -502,76 +517,69 @@ function SocialCard({
   children,
   ...props
 }: SocialCardProps) {
-  const formattedDate = React.useMemo(() => {
-    const date = new Date();
-    return `${String(date.getDate()).padStart(2, "0")}/${String(
-      date.getMonth() + 1
-    ).padStart(2, "0")}/${date.getFullYear()}`;
-  }, []);
+  function getPlatformStyles(type: string): string {
+    const styles = {
+      youtube: "bg-red-600/10 border-red-600/20 hover:bg-red-600/20",
+      twitter: "bg-sky-500/10 border-sky-500/20 hover:bg-sky-500/20",
+      instagram:
+        "bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-orange-500/10 border-pink-500/20 hover:from-purple-500/20 hover:via-pink-500/20 hover:to-orange-500/20",
+      linkedin: "bg-blue-700/10 border-blue-700/20 hover:bg-blue-700/20",
+      notion: "bg-gray-900/10 border-gray-900/20 hover:bg-gray-900/20",
+      eraser: `bg-gradient-to-r from-[#EC2C40]/10 to-[#00A9E5]/10 
+             border-[#EC2C40]/20 
+             hover:from-[#EC2C40]/20 hover:to-[#00A9E5]/20`,
+      excalidraw: "bg-[#6965db]/10 border-[#6965db]/20 hover:bg-[#6965db]/20",
+    };
 
+    return (
+      styles[type as keyof typeof styles] ||
+      "bg-white border-gray-200 hover:bg-gray-50"
+    );
+  }
   return (
-    <Card className={cn("break-inside-avoid mb-4", className)} {...props}>
-      <CardHeader>
-        <CardTitle>
+    <Card
+      className={cn(
+        "break-inside-avoid w-full",
+        "transition-all duration-200",
+        "mb-4 sm:mb-6",
+        getPlatformStyles(type),
+        className
+      )}
+      {...props}
+    >
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center gap-2">
+        <CardTitle className="flex items-center gap-2 flex-1 min-w-0">
           <PlatformIcon type={type} />
-          <span className="capitalize">{title}</span>
+          <span className="truncate">{title}</span>
         </CardTitle>
         {!hideControls && (
-          <div className="flex gap-3 text-gray-400">
+          <div className="flex gap-2 sm:gap-3">
             <button
               title="Share"
-              className="hover:text-blue-500 transition-colors"
+              className="p-2 hover:text-blue-500 transition-colors"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-                <polyline points="16 6 12 2 8 6" />
-                <line x1="12" y1="2" x2="12" y2="15" />
-              </svg>
+              <ShareIcon className="w-4 h-4" />
             </button>
-
             <button
               title="Delete"
-              className="hover:text-red-500 transition-colors"
+              className="p-2 hover:text-red-500 transition-colors"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 6h18" />
-                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                <line x1="10" y1="11" x2="10" y2="17" />
-                <line x1="14" y1="11" x2="14" y2="17" />
-              </svg>
+              <TrashIcon className="w-4 h-4" />
             </button>
           </div>
         )}
       </CardHeader>
+
       <CardContent>
-        <Embed type={type} link={link} title={title} />
+        <div className="aspect-video sm:aspect-auto">
+          <Embed type={type} link={link} title={title} />
+        </div>
         {tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
+          <div className="flex flex-wrap gap-2 mt-4">
             {tags.map((tag, idx) => (
               <span
                 key={idx}
-                className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded"
+                className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700"
               >
                 {tag.startsWith("#") ? tag : `#${tag}`}
               </span>
@@ -579,58 +587,65 @@ function SocialCard({
           </div>
         )}
       </CardContent>
-      <CardFooter>
-        <span>Added on {formattedDate}</span>
-      </CardFooter>
     </Card>
   );
 }
 
 // Add the MasonryGrid component to Card.tsx
-const MasonryGrid: React.FC<{
+interface MasonryGridProps {
   children: React.ReactNode;
-  columns?: number;
+  columns: number;
   gap?: number;
   className?: string;
-}> = ({ children, columns = 3, gap = 4, className = "" }) => {
-  const [currentColumns, setCurrentColumns] = React.useState(columns);
+}
 
-  React.useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
-      if (width < 640) {
-        setCurrentColumns(1); // Mobile: 1 column
-      } else if (width < 1024) {
-        setCurrentColumns(2); // Tablet: 2 columns
-      } else {
-        setCurrentColumns(columns); // Desktop: use provided columns
-      }
-    };
+export function MasonryGrid({
+  children,
+  columns = 3,
+  gap = 6,
+  className = "",
+}: MasonryGridProps) {
+  const columnWrapper: Record<string, any[]> = {};
+  const result = [];
 
-    handleResize(); // Initial check
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+  // Calculate columns based on screen size
+  const responsiveColumns = React.useMemo(() => {
+    if (typeof window === "undefined") return columns;
+    if (window.innerWidth < 640) return 1;
+    if (window.innerWidth < 1024) return 2;
+    return columns;
   }, [columns]);
 
+  // Create columns
+  for (let i = 0; i < responsiveColumns; i++) {
+    columnWrapper[`column${i}`] = [];
+  }
+
+  // Split children into columns
+  React.Children.forEach(children, (child, index) => {
+    const columnIndex = index % responsiveColumns;
+    columnWrapper[`column${columnIndex}`].push(child);
+  });
+
+  // Create column divs
+  for (let i = 0; i < responsiveColumns; i++) {
+    result.push(
+      <div
+        key={i}
+        style={{
+          flex: 1,
+          marginLeft: i > 0 ? `${gap * 4}px` : "0",
+        }}
+        className="flex flex-col gap-4 sm:gap-6"
+      >
+        {columnWrapper[`column${i}`]}
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={cn("w-full", className)}
-      style={{
-        columnCount: currentColumns,
-        columnGap: `${gap * 0.25}rem`,
-      }}
-    >
-      {children}
+    <div className={cn("flex flex-row w-full", "gap-4 sm:gap-6", className)}>
+      {result}
     </div>
   );
-};
-
-export {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-  SocialCard,
-  MasonryGrid,
-};
+}
