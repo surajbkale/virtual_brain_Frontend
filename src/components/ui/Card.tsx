@@ -503,7 +503,6 @@ interface SocialCardProps extends React.ComponentProps<"div"> {
   type: EmbedProps["type"];
   link: string;
   title: string;
-  tags?: string[];
   hideControls?: boolean;
 }
 
@@ -511,7 +510,6 @@ export function SocialCard({
   type,
   link,
   title,
-  tags = [],
   hideControls = false,
   className,
   children,
@@ -574,18 +572,6 @@ export function SocialCard({
         <div className="aspect-video sm:aspect-auto">
           <Embed type={type} link={link} title={title} />
         </div>
-        {tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-4">
-            {tags.map((tag, idx) => (
-              <span
-                key={idx}
-                className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700"
-              >
-                {tag.startsWith("#") ? tag : `#${tag}`}
-              </span>
-            ))}
-          </div>
-        )}
       </CardContent>
     </Card>
   );
