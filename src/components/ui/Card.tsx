@@ -41,7 +41,7 @@ declare global {
 
 const extractVideoId = (url: string): string | null => {
   const regExp =
-    /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|shorts\/|&v=)([^#&?\/]{11}).*/;
+    /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|shorts\/|&v=)([^#&?/]{11}).*/;
   const match = url.match(regExp);
   return match ? match[2] : null;
 };
@@ -861,7 +861,7 @@ const Embed: React.FC<EmbedProps> = ({ type, link, title, content }) => {
       const [postError, setPostError] = useState(false);
 
       React.useEffect(() => {
-        if (!isShortShareLink && !(window as any).FB) {
+        if (!isShortShareLink && !(window as Window & typeof globalThis & { FB?: unknown }).FB) {
           const script = document.createElement("script");
           script.src = "https://connect.facebook.net/en_US/sdk.js";
           script.async = true;
