@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 export const colors = {
-  primary: "#881ae5",
+  primary: "#3473a5",
   black: "#1a172b",
   white: "#ffffff",
   grey: "#adadae",
@@ -26,7 +26,7 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
-        customPurple: "bg-[#881ae5] text-white hover:bg-[#7915cc]",
+        customPurple: "bg-[#3473a5] text-white hover:bg-[#7915cc]",
       },
       size: {
         default: "<h-9></h-9> px-4 py-2 has-[>svg]:px-3",
@@ -35,14 +35,14 @@ const buttonVariants = cva(
         icon: "size-9",
       },
       color: {
-        default: "bg-[#881ae5] text-white hover:bg-[#881ae5]/90",
-        primary: "bg-[#881ae5] text-white hover:bg-[#881ae5]/90",
+        default: "bg-[#3473a5] text-white hover:bg-[#3473a5]/90",
+        primary: "bg-[#3473a5] text-white hover:bg-[#3473a5]/90",
         black: "bg-[#1a172b] text-white hover:bg-[#1a172b]/90",
         white:
-          "bg-[#ffffff] !text-[#881ae5] hover:bg-[#ffffff]/90 border border-[#adadae]",
-        grey: "bg-[#adadae] !text-[#881ae5] hover:bg-[#adadae]/90",
+          "bg-[#ffffff] !text-[#3473a5] hover:bg-[#ffffff]/90 border border-[#adadae]",
+        grey: "bg-[#adadae] !text-[#3473a5] hover:bg-[#adadae]/90",
         lightpurple:
-          "bg-[#E0E7FF] text-[#881ae5] border hover:border-[#adadae]",
+          "bg-[#E0E7FF] text-[#3473a5] border hover:border-[#adadae]",
       },
     },
     defaultVariants: {

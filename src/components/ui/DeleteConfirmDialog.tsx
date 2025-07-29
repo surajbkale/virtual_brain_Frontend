@@ -22,7 +22,7 @@ export function DeleteConfirmDialog({
 }: DeleteConfirmDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-[#881ae5] backdrop-blur-xl border-white/30">
+      <DialogContent className="sm:max-w-md bg-[#3473a5] backdrop-blur-xl border-white/30">
         <DialogHeader>
           <DialogTitle className="text-white">Delete Content</DialogTitle>
           <DialogDescription className="text-white/70">

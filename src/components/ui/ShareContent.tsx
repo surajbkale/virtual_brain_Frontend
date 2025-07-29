@@ -15,13 +15,33 @@ interface ShareContentModalProps {
   contentId?: string;
 }
 
-export function ShareContentModal({
-  isOpen,
-  onClose,
-  contentId,
-}: ShareContentModalProps) {
+export function ShareContentModal({ isOpen, onClose }: ShareContentModalProps) {
   const [shareLink, setShareLink] = React.useState("");
   const [loading, setLoading] = React.useState(false);
+
+  const generateShareLink = async () => {
+    try {
+      setLoading(true);
+      // Call the API with share=true
+      const response = (await contentService.shareContent(
+        true
+      )) as ShareResponse;
+
+      if (response && response.hash) {
+        // Construct the full share URL
+        const shareUrl = `${window.location.origin}/shared/${response.hash}`;
+        setShareLink(shareUrl);
+        toast.success("Share link generated!");
+      } else {
+        throw new Error("Failed to generate share link");
+      }
+    } catch (error) {
+      console.error("Share error:", error);
+      toast.error("Failed to generate share link");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Generate share link when modal opens
   React.useEffect(() => {
@@ -29,23 +49,6 @@ export function ShareContentModal({
       generateShareLink();
     }
   }, [isOpen]);
-
-  const generateShareLink = async () => {
-    try {
-      setLoading(true);
-      const response = (await contentService.shareContent(
-        true
-      )) as ShareResponse;
-      if (response && response.hash) {
-        const url = `${window.location.origin}/shared/${response.hash}`;
-        setShareLink(url);
-      }
-    } catch (error) {
-      toast.error("Failed to generate share link");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCopy = async () => {
     try {
@@ -69,7 +72,7 @@ export function ShareContentModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="p-6 bg-[#881ae5] border-none rounded-3xl w-[90vw] max-w-[400px]">
+      <DialogContent className="p-6 bg-[#3473a5] border-none rounded-3xl w-[90vw] max-w-[400px]">
         {/* Single close button */}
         <button
           onClick={onClose}
@@ -108,8 +111,4 @@ export function ShareContentModal({
       </DialogContent>
     </Dialog>
   );
-}
-
-function generateShareLink() {
-  throw new Error("Function not implemented.");
 }

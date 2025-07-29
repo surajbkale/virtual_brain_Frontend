@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { SocialCard, MasonryGrid } from "@/components/ui/Card";
 import { Grid, List } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 import { contentService } from "@/services/content.service";
 
 interface ContentItem {
@@ -98,7 +97,7 @@ export function SharedContentPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#881ae5] flex items-center justify-center">
+      <div className="min-h-screen bg-[#3473a5] flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
       </div>
     );
@@ -106,7 +105,7 @@ export function SharedContentPage() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-[#881ae5] flex items-center justify-center">
+      <div className="min-h-screen bg-[#3473a5] flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-2">
             Content Not Available
@@ -120,7 +119,7 @@ export function SharedContentPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
-      <div className="bg-gradient-to-br from-[#881ae5] to-purple-700 text-white">
+      <div className="bg-gradient-to-br from-[#629bd0] to-[#3473a5] text-white">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-4">
             {/* Left Section */}
@@ -195,6 +194,7 @@ export function SharedContentPage() {
                   id={item._id}
                   type={item.type}
                   link={item.link}
+                  content={item.link}
                   title={item.title}
                   createdAt={item.createdAt}
                   hideControls
@@ -213,6 +213,7 @@ export function SharedContentPage() {
                   id={item._id}
                   type={item.type}
                   link={item.link}
+                  content={item.link}
                   title={item.title}
                   createdAt={item.createdAt}
                   hideControls

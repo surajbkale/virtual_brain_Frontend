@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import { User, LogOut, BookOpen, LayoutGrid, LayoutList } from "lucide-react";
+import { LayoutGrid, LayoutList, Edit2 } from "lucide-react";
 import { ShareIcon } from "@/icons/ShareIcon";
 import { PlusIcon } from "@/icons/PlusIcon";
 import {
@@ -11,13 +10,11 @@ import {
 } from "@/components/ui/Sidebar";
 import { AppSidebar } from "@/components/ui/app-sidebar";
 import { Dashboard } from "../components/ui/DashBoard";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { SocialCard, MasonryGrid } from "@/components/ui/Card";
-import { CreateContentModel } from "../components/ui/CreateContentModel";
+import { CreateContentModal } from "../components/ui/CreateContentModel";
 import { ShareContentModal } from "../components/ui/ShareContent";
 import { WelcomeGuide } from "@/components/ui/Welcome";
 import { Button } from "@/components/ui/Button";
-import { AtomIcon as PlatformIcon } from "lucide-react";
 import "react-toastify/dist/ReactToastify.css";
 import { contentService } from "@/services/content.service";
 
@@ -29,7 +26,8 @@ type SocialCardType =
   | "linkedin"
   | "notion"
   | "eraser"
-  | "excalidraw";
+  | "excalidraw"
+  | "note";
 
 interface ContentItem {
   _id: string;
@@ -37,6 +35,7 @@ interface ContentItem {
   link: string;
   title: string;
   userId: string;
+  content?: string;
   createdAt?: string; // Added createdAt as optional
 }
 
@@ -51,6 +50,7 @@ const ContentPage: React.FC = () => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedType, setSelectedType] = useState<SocialCardType | null>(null);
 
   // Mobile detection
   useEffect(() => {
@@ -127,6 +127,26 @@ const ContentPage: React.FC = () => {
     });
   };
 
+  const handleAddNote = () => {
+    setIsCreateModalOpen(true);
+    // Pre-select note type
+    setSelectedType("note");
+  };
+
+  const handleEdit = async (id: string, newContent: string) => {
+    try {
+      await contentService.updateContent(id, newContent);
+      setContent((prevContent) =>
+        prevContent.map((item) =>
+          item._id === id ? { ...item, content: newContent } : item
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update content:", error);
+      toast.error("Failed to update content");
+    }
+  };
+
   // Filter content
   const filteredContent = React.useMemo(() => {
     if (!activeFilter) return content;
@@ -149,7 +169,7 @@ const ContentPage: React.FC = () => {
           ) : (
             <div className="min-h-screen bg-gray-50">
               {/* Header Section */}
-              <div className="bg-gradient-to-br from-[#881ae5] to-purple-700 text-white">
+              <div className="bg-gradient-to-br from-[#3473a5] to-[#3473a5] text-white">
                 <div className="max-w-7xl mx-auto px-4 py-4">
                   <div className="flex items-center justify-between gap-4">
                     {/* Left Section */}
@@ -221,7 +241,7 @@ const ContentPage: React.FC = () => {
 
                       <Button
                         onClick={() => setIsCreateModalOpen(true)}
-                        className="bg-white text-[#881ae5] hover:bg-white/90 transition-colors h-9"
+                        className="bg-white text-[#3473a5] hover:bg-white/90 transition-colors h-9"
                         size="sm"
                       >
                         <PlusIcon className="w-4 h-4" />
@@ -236,23 +256,29 @@ const ContentPage: React.FC = () => {
 
               {/* Content Section */}
               <div className="max-w-7xl mx-auto p-4">
-                {filteredContent.length === 0 && !activeFilter ? (
+                {isLoading ? (
+                  <div className="flex justify-center items-center min-h-[200px]">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-700"></div>
+                  </div>
+                ) : filteredContent.length === 0 && !activeFilter ? (
                   <WelcomeGuide />
                 ) : (
                   <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
                     {isMobile || layout === "list" ? (
                       <div className="flex flex-col gap-4">
-                        {filteredContent.map((item, index) => (
+                        {filteredContent.map((item) => (
                           <SocialCard
                             key={item._id}
                             id={item._id}
                             type={item.type}
                             link={item.link}
                             title={item.title}
+                            content={item.content || item.link} // Update this line
                             createdAt={
                               item.createdAt || new Date().toISOString()
                             }
                             onDelete={handleDelete}
+                            onEdit={handleEdit} // Add this
                             className="w-full"
                           />
                         ))}
@@ -262,17 +288,19 @@ const ContentPage: React.FC = () => {
                         columns={isMobile ? 1 : columns}
                         gap={isMobile ? 4 : 6}
                       >
-                        {filteredContent.map((item, index) => (
+                        {filteredContent.map((item) => (
                           <SocialCard
                             key={item._id}
                             id={item._id}
                             type={item.type}
                             link={item.link}
                             title={item.title}
+                            content={item.content || item.link} // Update this line
                             createdAt={
                               item.createdAt || new Date().toISOString()
                             }
                             onDelete={handleDelete}
+                            onEdit={handleEdit} // Add this
                             className="w-full"
                           />
                         ))}
@@ -286,65 +314,25 @@ const ContentPage: React.FC = () => {
         </SidebarInset>
       </div>
 
-      <CreateContentModel
+      <CreateContentModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleAddContent}
+        selectedType={selectedType}
       />
       <ShareContentModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
       />
       <ToastContainer />
+      {/* Add a floating action button for quick note */}
+      <Button
+        onClick={handleAddNote}
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg bg-yellow-500 hover:bg-yellow-600"
+      >
+        <Edit2 className="h-6 w-6 text-white" />
+      </Button>
     </SidebarProvider>
-  );
-};
-
-// SocialCard wrapper component
-const SocialCardWrapper = ({
-  type,
-  link,
-  title,
-  tags,
-  className,
-  ...props
-}: any) => {
-  function cn(...classes: (string | undefined | false | null)[]): string {
-    return classes.filter(Boolean).join(" ");
-  }
-
-  return (
-    <Card
-      className={cn(
-        "break-inside-avoid w-full transition-all duration-200",
-        className
-      )}
-      {...props}
-    >
-      <CardHeader className="flex flex-col sm:flex-row sm:items-center gap-2">
-        <CardTitle className="flex items-center gap-2 flex-1 min-w-0">
-          <PlatformIcon type={type} />
-          <span className="truncate">{title}</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="aspect-video sm:aspect-auto">
-          {/* Content rendering */}
-        </div>
-        {tags && tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-4">
-            {tags.map((tag: string, idx: number) => (
-              <span
-                key={idx}
-                className="text-xs px-2 py-1 rounded-md bg-purple-100 text-purple-700"
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
   );
 };
 

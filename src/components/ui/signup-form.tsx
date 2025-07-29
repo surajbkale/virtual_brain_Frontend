@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff, Check, AlertCircle } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { authService } from "@/services/auth.service";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,30 @@ interface FormErrors {
   password?: string;
   general?: string;
 }
+
+const validatePassword = (password: string): string[] => {
+  const errors: string[] = [];
+
+  if (password.length < 8) {
+    errors.push("Password must be at least 8 characters long");
+  }
+  if (!/[A-Z]/.test(password)) {
+    errors.push("Password must contain at least one uppercase letter");
+  }
+  if (!/[a-z]/.test(password)) {
+    errors.push("Password must contain at least one lowercase letter");
+  }
+  if (!/[0-9]/.test(password)) {
+    errors.push("Password must contain at least one number");
+  }
+  if (!/[!@#$%^&*]/.test(password)) {
+    errors.push(
+      "Password must contain at least one special character (!@#$%^&*)"
+    );
+  }
+
+  return errors;
+};
 
 export function SignupForm({
   className,
@@ -24,42 +48,15 @@ export function SignupForm({
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
-  const validateForm = (): boolean => {
+  const validateForm = () => {
     const newErrors: FormErrors = {};
+    const passwordErrors = validatePassword(password);
 
-    // Name validation
-    if (!Name.trim()) {
-      newErrors.Name = "Name is required";
-    } else if (Name.length < 3) {
-      newErrors.Name = "Name must be at least 3 characters";
-    } else if (Name.length > 10) {
-      newErrors.Name = "Name cannot exceed 10 characters";
-    }
-
-    // Email validation
-    if (!email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    // Password validation
-    if (!password) {
-      newErrors.password = "Password is required";
-    } else if (password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
-    } else if (!/[A-Z]/.test(password)) {
-      newErrors.password =
-        "Password must contain at least one uppercase letter";
-    } else if (!/[a-z]/.test(password)) {
-      newErrors.password =
-        "Password must contain at least one lowercase letter";
-    } else if (!/[0-9]/.test(password)) {
-      newErrors.password = "Password must contain at least one number";
-    } else if (!/[^A-Za-z0-9]/.test(password)) {
-      newErrors.password =
-        "Password must contain at least one special character";
+    if (passwordErrors.length > 0) {
+      newErrors.password = passwordErrors.join("\n");
     }
 
     setErrors(newErrors);
@@ -68,147 +65,180 @@ export function SignupForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
-
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setLoading(true);
     try {
-      await authService.signup(Name, email, password);
-      toast.success("Account created successfully!");
+      const response = await authService.signup(Name, email, password);
+      toast.success(response.message || "Account created successfully!");
       navigate("/login");
     } catch (error: any) {
       console.error("Signup error:", error);
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to create account";
-
-      if (
-        error.response?.data?.error &&
-        Array.isArray(error.response.data.error)
-      ) {
-        // Handle backend validation errors
-        const backendErrors = error.response.data.error;
-        const formattedErrors: FormErrors = {};
-
-        backendErrors.forEach((err: string) => {
-          if (err.toLowerCase().includes("name")) {
-            formattedErrors.Name = err;
-          } else if (err.toLowerCase().includes("email")) {
-            formattedErrors.email = err;
-          } else if (err.toLowerCase().includes("password")) {
-            formattedErrors.password = err;
-          } else {
-            formattedErrors.general = err;
-          }
-        });
-
-        setErrors(formattedErrors);
-      } else {
-        setErrors({ general: errorMessage });
-      }
-
-      toast.error(errorMessage);
+      setErrors({
+        general: error.response?.data?.message || "Failed to create account",
+      });
+      toast.error(error.response?.data?.message || "Failed to create account");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Card
+    <div
       className={cn(
-        "rounded-[20px] border border-white/30 bg-white/10 backdrop-blur-xl w-full max-w-[400px] px-8 py-10",
+        "w-full max-w-[400px] rounded-[20px] border border-white/30 bg-white/10 backdrop-blur-xl p-8",
         className
       )}
       {...props}
     >
-      <CardContent className="p-0">
-        <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-white">Join BrainyBox</h1>
-          <p className="text-base text-white/80">
-            Create your second brain account
-          </p>
-        </div>
+      <div className="space-y-2 text-center">
+        <h1 className="text-3xl font-bold text-white">Join BrainyBox</h1>
+        <p className="text-base text-white/80">
+          Create your second brain account
+        </p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="mt-10 space-y-5">
-          <div className="space-y-2">
-            <Input
-              type="text"
-              placeholder="Name"
-              value={Name}
-              onChange={(e) => setName(e.target.value)}
-              className={cn(
-                "bg-white/20 border border-white/30 text-white placeholder:text-white/60 rounded-lg",
-                errors.Name && "border-red-500"
-              )}
-              required
-            />
-            {errors.Name && (
-              <p className="text-red-500 text-sm">{errors.Name}</p>
-            )}
-          </div>
+      <form onSubmit={handleSubmit} className="mt-10 space-y-5">
+        <div className="space-y-4">
+          <Input
+            type="text"
+            placeholder="Name"
+            value={Name}
+            onChange={(e) => setName(e.target.value)}
+            className="h-12 bg-white/20 border border-white/30 text-white placeholder:text-white/60 rounded-lg"
+            required
+          />
 
-          <div className="space-y-2">
-            <Input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={cn(
-                "bg-white/20 border border-white/30 text-white placeholder:text-white/60 rounded-lg",
-                errors.email && "border-red-500"
-              )}
-              required
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm">{errors.email}</p>
-            )}
-          </div>
+          <Input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="h-12 bg-white/20 border border-white/30 text-white placeholder:text-white/60 rounded-lg"
+            required
+          />
 
-          <div className="space-y-2">
+          <div className="relative">
             <Input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={cn(
-                "bg-white/20 border border-white/30 text-white placeholder:text-white/60 rounded-lg",
-                errors.password && "border-red-500"
-              )}
+              onFocus={() => setPasswordFocused(true)}
+              onBlur={() => setPasswordFocused(false)}
+              className="h-12 bg-white/20 border border-white/30 text-white placeholder:text-white/60 rounded-lg pr-10"
               required
             />
-            {errors.password && (
-              <p className="text-red-500 text-sm">{errors.password}</p>
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
+            {passwordFocused && (
+              <div className="absolute z-10 w-full p-4 mt-2 bg-white rounded-lg shadow-lg">
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2 text-sm">
+                    {password.length >= 8 ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                    )}
+                    <span
+                      className={
+                        password.length >= 8 ? "text-green-500" : "text-red-500"
+                      }
+                    >
+                      Password must be at least 8 characters long
+                    </span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm">
+                    {/[A-Z]/.test(password) ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                    )}
+                    <span
+                      className={
+                        /[A-Z]/.test(password)
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }
+                    >
+                      Password must contain at least one uppercase letter
+                    </span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm">
+                    {/[0-9]/.test(password) ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                    )}
+                    <span
+                      className={
+                        /[0-9]/.test(password)
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }
+                    >
+                      Password must contain at least one number
+                    </span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm">
+                    {/[!@#$%^&*]/.test(password) ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                    )}
+                    <span
+                      className={
+                        /[!@#$%^&*]/.test(password)
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }
+                    >
+                      Password must contain at least one special character
+                      (!@#$%^&*)
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            )}
+            {errors.password && !passwordFocused && (
+              <p className="text-red-500 text-sm mt-1 whitespace-pre-line">
+                {errors.password}
+              </p>
             )}
           </div>
+        </div>
 
-          {errors.general && (
-            <p className="text-red-500 text-sm text-center">{errors.general}</p>
-          )}
+        {errors.general && (
+          <p className="text-red-500 text-sm text-center">{errors.general}</p>
+        )}
 
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-gradient-to-r from-[#e57a7a] to-[#ef8247] hover:opacity-90 text-white font-semibold py-2.5"
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full h-12 rounded-lg bg-gradient-to-r from-[#629bd0] to-[#3473a5] hover:opacity-90 text-white font-semibold"
+        >
+          {loading ? "Creating Account..." : "Sign Up"}
+        </Button>
+
+        <p className="text-center text-white/80">
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="text-[#629bd0] hover:text-[#3473a5] transition-colors font-semibold"
           >
-            {loading ? "Creating Account..." : "Sign Up"}
-          </Button>
-
-          <p className="text-center text-white/80">
-            Already have an account?{" "}
-            <Button
-              variant="link"
-              className="text-white hover:text-[#ef8247]"
-              onClick={() => navigate("/login")}
-            >
-              Login
-            </Button>
-          </p>
-        </form>
-      </CardContent>
-    </Card>
+            Login
+          </Link>
+        </p>
+      </form>
+    </div>
   );
 }

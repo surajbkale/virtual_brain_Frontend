@@ -14,14 +14,26 @@ export const contentService = {
     title: string;
     type: string;
     link: string;
-    tags: string[];
+    content?: string;
   }) {
-    const response = await api.post("/api/v1/content", content, {
-      headers: {
-        token: localStorage.getItem("token"),
-      },
-    });
-    return response.data;
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    try {
+      const response = await api.post("/api/v1/content", content, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          token: token,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Create content error:", error);
+      // Don't remove token on content creation errors
+      throw error;
+    }
   },
 
   async getMyContent() {
@@ -62,6 +74,24 @@ export const contentService = {
       return response.data;
     } catch (error) {
       console.error("Get shared content error:", error);
+      throw error;
+    }
+  },
+
+  async updateContent(id: string, content: string) {
+    try {
+      const response = await api.put(
+        `/api/v1/content/${id}`,
+        { content },
+        {
+          headers: {
+            token: localStorage.getItem("token"),
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Update content error:", error);
       throw error;
     }
   },

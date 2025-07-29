@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { TrashIcon, ShareIcon } from "lucide-react";
+import { Share as ShareIcon, Trash as TrashIcon } from "lucide-react";
 import { format } from "date-fns";
 import {
   AlertDialog,
@@ -15,6 +15,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import api from "@/services/api";
+import { contentService } from "@/services/content.service";
 
 declare global {
   interface Window {
@@ -28,15 +29,21 @@ declare global {
         process: (element?: HTMLElement | null) => void;
       };
     };
+    FB?: {
+      XFBML: {
+        parse: (element?: HTMLElement | null) => void;
+      };
+    };
   }
 }
 
 //*Embedding Code
 
 const extractVideoId = (url: string): string | null => {
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const regExp =
+    /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|shorts\/|&v=)([^#&?\/]{11}).*/;
   const match = url.match(regExp);
-  return match && match[2].length === 11 ? match[2] : null;
+  return match ? match[2] : null;
 };
 
 const extractTweetId = (url: string): string | null => {
@@ -53,11 +60,63 @@ const extractInstagramId = (url: string): string | null => {
   return match ? match[1] : null;
 };
 
-const extractLinkedInPostId = (url: string): string | null => {
-  const regExp =
-    /^https?:\/\/(?:www\.)?linkedin\.com\/(?:posts|feed\/update)\/(\d+)/;
-  const match = url.match(regExp);
+// const extractLinkedInPostId = (url: string): string | null => {
+//   const regExp =
+//     /^https?:\/\/(?:www\.)?linkedin\.com\/(?:posts|feed\/update)\/([a-zA-Z0-9-]+)/;
+//   const match = url.match(regExp);
+//   return match ? match[1] : null;
+// };
+
+const extractMediumId = (url: string): string | null => {
+  const regex = /medium\.com\/(?:@[\w-]+\/)?([^?/]+)/;
+  const match = url.match(regex);
   return match ? match[1] : null;
+};
+
+const extractGithubId = (url: string): string | null => {
+  const regex = /github\.com\/([^/]+\/[^/]+)/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+};
+
+// const extractFigmaId = (url: string): string | null => {
+//   const regex = /file\/([^/]+)/;
+//   const match = url.match(regex);
+//   return match ? match[1] : null;
+// };
+
+const extractCodepenId = (url: string): string | null => {
+  const regex = /codepen\.io\/([^/]+\/pen\/[^/]+)/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+};
+
+const extractSpotifyId = (url: string): { type: string; id: string } | null => {
+  const regex = /spotify\.com\/(track|playlist|episode|show)\/([^?/]+)/;
+  const match = url.match(regex);
+  return match ? { type: match[1], id: match[2] } : null;
+};
+
+const extractMiroId = (url: string): string | null => {
+  const regex = /miro\.com\/app\/board\/([^/?#]+)/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+};
+
+const extractFacebookId = (url: string): string | null => {
+  const patterns = [
+    /facebook\.com\/[^/]+\/(?:posts|videos)\/(\d+)/, // username/posts/id or videos/id
+    /facebook\.com\/story\.php\?story_fbid=(\d+)/, // story.php?story_fbid=...
+    /facebook\.com\/permalink\.php\?story_fbid=(\d+)&id=\d+/, // permalink.php
+    /facebook\.com\/share\/(?:r\/)?([^/?#]+)/, // short links like /share/r/abc123 or /share/abc123
+  ];
+
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+
+  return null;
 };
 
 //* Platform icons
@@ -161,22 +220,155 @@ const PlatformIcon: React.FC<{ type: string }> = ({ type }) => {
           ></path>
         </svg>
       );
-    default:
+    case "note":
       return (
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
+          width="24"
+          height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
         >
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="8" x2="12" y2="16" />
-          <line x1="8" y1="12" x2="16" y2="12" />
+          <path d="M15 12h6" />
+          <path d="M15 6h6" />
+          <path d="m3 13 3.553-7.724a.5.5 0 0 1 .894 0L11 13" />
+          <path d="M3 18h18" />
+          <path d="M3.92 11h6.16" />
+        </svg>
+      );
+
+    case "medium":
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="text-green-600"
+        >
+          <path d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z" />
+        </svg>
+      );
+
+    case "github":
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="text-gray-900"
+        >
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12" />
+        </svg>
+      );
+
+    case "figma":
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="text-[#3473a5]"
+        >
+          <path d="M15.852 8.981h-4.588V0h4.588c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.491-4.49 4.491zM12.735 7.51h3.117c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-3.117V7.51zm0 1.471H8.148c-2.476 0-4.49-2.014-4.49-4.49S5.672 0 8.148 0h4.588v8.981zm-4.587-7.51c-1.665 0-3.019 1.355-3.019 3.019s1.354 3.02 3.019 3.02h3.117V1.471H8.148zm4.587 15.019H8.148c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h4.588v8.98zM8.148 8.981c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h3.117V8.981H8.148zM8.172 24c-2.489 0-4.515-2.014-4.515-4.49s2.014-4.49 4.49-4.49h4.588v4.441c0 2.503-2.047 4.539-4.563 4.539z" />
+        </svg>
+      );
+
+    case "codepen":
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="text-gray-900"
+        >
+          <path d="M24 8.182l-.018-.087-.017-.05c-.01-.024-.018-.05-.03-.075-.003-.018-.015-.034-.02-.05l-.035-.067-.03-.05-.044-.06-.046-.045-.06-.045-.046-.03-.06-.044-.044-.04-.015-.02L12.58.19c-.347-.232-.796-.232-1.142 0L.453 7.502l-.015.015-.044.035-.06.05-.038.04-.05.056-.037.045-.05.06c-.02.017-.03.03-.03.046l-.05.06-.02.06c-.02.01-.02.04-.03.07l-.01.05C0 8.12 0 8.15 0 8.18v7.497c0 .044.003.09.01.135l.01.046c.005.03.01.06.02.086l.015.05c.01.027.016.053.027.075l.022.05c0 .01.015.04.03.06l.03.04c.015.01.03.04.045.06l.03.04.04.04c.01.013.01.03.03.03l.06.042.04.03.01.014 10.97 7.33c.164.12.375.163.57.163s.39-.06.57-.18l10.99-7.28.014-.01.046-.037.06-.043.048-.036.052-.058.033-.045.04-.06.03-.05.03-.07.016-.052.03-.077.015-.045.03-.08v-7.5c0-.05 0-.095-.016-.14l-.014-.045.044.003zm-11.99 6.28l-3.65-2.44 3.65-2.442 3.65 2.44-3.65 2.44zm-1.216-6.18l-4.473 3.003-3.612-2.415L12.183 3.2v5.09zm-6.343 3.75l2.53 1.694-2.53 1.69v-3.38zm6.343 3.75V19l-9.3-6.212 3.61-2.41 5.69 3.806zm2.432 0l5.69-3.805 3.61 2.41L12.615 19v-5.09zm6.343-3.75v3.38l-2.53-1.69 2.53-1.694z" />
+        </svg>
+      );
+
+    case "googledocs":
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="text-blue-600"
+        >
+          <path d="M14.727 6.727H0V24h17.455V9.455L14.727 6.727zM3.879 19.395v-2.969h9.697v2.969H3.879zm9.697-4.848H3.879v-2.97h9.697v2.97zm0-4.849H3.879V6.727h9.697v2.971zM24 6.727l-6.545-6.545v6.545H24z" />
+        </svg>
+      );
+
+    case "spotify":
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="text-green-500"
+        >
+          <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
+        </svg>
+      );
+
+    case "miro":
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="text-yellow-500"
+        >
+          <path d="M17.392 0H6.608C2.958 0 0 2.958 0 6.608v10.784C0 21.042 2.958 24 6.608 24h10.784C21.042 24 24 21.042 24 17.392V6.608C24 2.958 21.042 0 17.392 0zM12 18.4c-3.6 0-6.4-2.8-6.4-6.4S8.4 5.6 12 5.6s6.4 2.8 6.4 6.4-2.8 6.4-6.4 6.4z" />
+        </svg>
+      );
+
+    case "facebook":
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="text-blue-600"
+        >
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+        </svg>
+      );
+
+    case "default":
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M15 18H3" />
+          <path d="M17 6H3" />
+          <path d="M21 12H3" />
         </svg>
       );
   }
@@ -190,13 +382,23 @@ interface EmbedProps {
     | "linkedin"
     | "notion"
     | "eraser"
-    | "excalidraw";
+    | "excalidraw"
+    | "note"
+    | "medium"
+    | "github"
+    | "figma"
+    | "codepen"
+    | "googledocs"
+    | "spotify"
+    | "miro"
+    | "facebook";
+
   link: string;
   title?: string;
   columns?: number;
+  content?: string;
 }
-
-const Embed: React.FC<EmbedProps> = ({ type, link, title, columns = 3 }) => {
+const Embed: React.FC<EmbedProps> = ({ type, link, title, content }) => {
   const embedRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -238,11 +440,35 @@ const Embed: React.FC<EmbedProps> = ({ type, link, title, columns = 3 }) => {
     }
     case "twitter": {
       const tweetId = extractTweetId(link);
+
+      React.useEffect(() => {
+        // Load Twitter embed script
+        if (type === "twitter" && tweetId) {
+          const script = document.createElement("script");
+          script.src = "https://platform.twitter.com/widgets.js";
+          script.async = true;
+          script.charset = "utf-8";
+          document.body.appendChild(script);
+
+          return () => {
+            document.body.removeChild(script);
+          };
+        }
+      }, [type, tweetId]);
+
       return tweetId ? (
-        <div ref={embedRef} className="w-full min-h-[200px]">
-          <blockquote className="twitter-tweet" data-conversation="none">
+        <div
+          ref={embedRef}
+          className="w-full min-h-[200px] flex justify-center"
+        >
+          <blockquote
+            className="twitter-tweet"
+            data-conversation="none"
+            data-theme="light"
+            data-align="center"
+          >
             <a href={`https://twitter.com/x/status/${tweetId}`}>
-              {title || "Loading tweet..."}
+              Loading tweet...
             </a>
           </blockquote>
         </div>
@@ -354,7 +580,7 @@ const Embed: React.FC<EmbedProps> = ({ type, link, title, columns = 3 }) => {
                         fill="#000000"
                       >
                         <g>
-                          <path d="M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631"></path>
+                          <path d="M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631" />
                         </g>
                       </g>
                     </g>
@@ -509,6 +735,246 @@ const Embed: React.FC<EmbedProps> = ({ type, link, title, columns = 3 }) => {
         </div>
       );
     }
+    case "note": {
+      return (
+        <div className="w-full min-h-[100px] p-4 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg">
+          <p className="text-gray-700 whitespace-pre-wrap">
+            {type === "note" ? content : link}
+          </p>
+        </div>
+      );
+    }
+    case "medium": {
+      const postId = extractMediumId(link);
+      return (
+        <div className="w-full min-h-[200px] border rounded-lg overflow-hidden bg-white">
+          <iframe
+            src={`https://medium.com/media/${postId}?postId=${postId}`}
+            className="w-full h-[400px]"
+            title={title || "Medium Post"}
+          />
+        </div>
+      );
+    }
+
+    case "github": {
+      const repoId = extractGithubId(link);
+      return (
+        <div className="w-full border rounded-lg p-4 bg-white">
+          <div className="flex items-center gap-2 mb-4">
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12" />
+            </svg>
+            <span className="font-medium">{title || repoId}</span>
+          </div>
+          <a
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-gray-900 text-white px-4 py-2 rounded-md inline-flex items-center hover:bg-gray-800"
+          >
+            View on GitHub
+          </a>
+        </div>
+      );
+    }
+
+    case "figma": {
+      return (
+        <div className="w-full aspect-video">
+          <iframe
+            src={`https://www.figma.com/embed?embed_host=share&url=${encodeURIComponent(
+              link
+            )}`}
+            className="w-full h-full rounded-xl"
+            allowFullScreen
+          />
+        </div>
+      );
+    }
+
+    case "codepen": {
+      const penId = extractCodepenId(link);
+      return (
+        <div className="w-full aspect-video">
+          <iframe
+            src={`https://codepen.io/embed/${penId}?default-tab=result`}
+            className="w-full h-full rounded-xl"
+            title={title || "CodePen Embed"}
+            allowTransparency={true}
+            allowFullScreen={true}
+          />
+        </div>
+      );
+    }
+
+    case "googledocs": {
+      return (
+        <div className="w-full min-h-[400px]">
+          <iframe
+            src={`${link.replace(/\/edit.*$/, "")}/preview`}
+            className="w-full h-[400px] rounded-xl"
+            title={title || "Google Doc"}
+          />
+        </div>
+      );
+    }
+
+    case "spotify": {
+      const spotifyData = extractSpotifyId(link);
+      return spotifyData ? (
+        <div className="w-full">
+          <iframe
+            src={`https://open.spotify.com/embed/${spotifyData.type}/${spotifyData.id}`}
+            width="100%"
+            height={spotifyData.type === "track" ? "80" : "380"}
+            frameBorder="0"
+            allow="encrypted-media"
+            className="rounded-xl"
+          />
+        </div>
+      ) : (
+        <div className="text-red-500">Invalid Spotify URL</div>
+      );
+    }
+
+    case "miro": {
+      const boardId = extractMiroId(link);
+      return (
+        <div className="w-full aspect-video">
+          <iframe
+            src={`https://miro.com/app/live-embed/${boardId}`}
+            frameBorder="0"
+            scrolling="no"
+            allowFullScreen
+            className="w-full h-full rounded-xl"
+          />
+        </div>
+      );
+    }
+
+    case "facebook": {
+      const postId = extractFacebookId(link);
+      const isShortShareLink = /facebook\.com\/share\/(?:r\/)?([^/?#]+)/.test(
+        link
+      );
+      const [postError, setPostError] = useState(false);
+
+      React.useEffect(() => {
+        if (!isShortShareLink && !(window as any).FB) {
+          const script = document.createElement("script");
+          script.src = "https://connect.facebook.net/en_US/sdk.js";
+          script.async = true;
+          script.defer = true;
+          script.crossOrigin = "anonymous";
+          document.body.appendChild(script);
+
+          script.onload = () => {
+            (window as any).FB.init({
+              xfbml: true,
+              version: "v18.0",
+            });
+
+            (window as any).FB.Event.subscribe("xfbml.render", function () {
+              setTimeout(() => {
+                const fbIframe = document.querySelector(
+                  ".fb_iframe_widget iframe"
+                );
+                const iframeHeight = fbIframe?.clientHeight;
+                // If iframe height is too small, likely there's an error
+                if (iframeHeight && iframeHeight < 100) {
+                  setPostError(true);
+                }
+              }, 2000);
+            });
+          };
+        }
+
+        return () => {
+          const fbRoot = document.getElementById("fb-root");
+          if (fbRoot) fbRoot.remove();
+        };
+      }, [postId, isShortShareLink]);
+
+      if (isShortShareLink || !postId) {
+        return (
+          <div className="flex flex-col items-center justify-center p-4 bg-white rounded-lg border border-gray-200">
+            <p className="text-gray-600 mb-2">
+              This Facebook link can’t be embedded but you can still view it:
+            </p>
+            <a
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 font-medium hover:underline"
+            >
+              View on Facebook
+            </a>
+          </div>
+        );
+      }
+
+      return (
+        <div className="w-full min-h-[150px]">
+          {postError ? (
+            <div className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center gap-3 mb-4">
+                <svg
+                  className="w-8 h-8 text-gray-400"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+                <div className="text-lg font-medium text-gray-900">
+                  Post Unavailable
+                </div>
+              </div>
+              <p className="text-gray-600 text-center mb-4">
+                This Facebook post is no longer available. It may have been
+                removed or the privacy settings have changed.
+              </p>
+              <a
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                <span>View on Facebook</span>
+                <svg
+                  className="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <path d="M15 3h6v6" />
+                  <path d="M10 14L21 3" />
+                </svg>
+              </a>
+            </div>
+          ) : (
+            <div className="w-full min-h-[300px] flex justify-center">
+              <div
+                className="fb-post"
+                data-href={link}
+                data-width="500"
+                data-show-text="true"
+                style={{
+                  backgroundColor: "white",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                  marginBottom: "16px",
+                }}
+              />
+              <div id="fb-root"></div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
     default:
       return <div className="text-red-500">Unsupported embed type.</div>;
   }
@@ -517,23 +983,16 @@ const Embed: React.FC<EmbedProps> = ({ type, link, title, columns = 3 }) => {
 export { Embed };
 
 interface CardProps extends React.ComponentProps<"div"> {
-  title: string;
-  link: string;
-  type: string;
-  date: string;
+  title?: string;
+  link?: string;
+  type?: string;
+  date?: string;
   tags?: string[];
   hideControls?: boolean;
   children?: React.ReactNode;
 }
 
-export const Card: React.FC<CardProps> = ({
-  title,
-  link,
-  type,
-  date,
-  tags,
-  hideControls,
-}) => {
+export const Card: React.FC<CardProps> = ({ title, link }) => {
   return (
     <div className="bg-white rounded-lg p-4 shadow-md">
       <h2>{title}</h2>
@@ -565,16 +1024,13 @@ export function CardContent({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  return <div className={cn("pt-0", className)} {...props} />;
+  return <div className={cn("", className)} {...props} />;
 }
 
 function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      className={cn(
-        "flex items-center justify-between mt-4 gap-4 text-sm text-gray-500",
-        className
-      )}
+      className={cn("flex items-center justify-between gap-4", className)}
       {...props}
     />
   );
@@ -585,26 +1041,47 @@ interface SocialCardProps extends React.ComponentProps<"div"> {
   type: EmbedProps["type"];
   link: string;
   title: string;
+  content: string; // Add this
   hideControls?: boolean;
   createdAt: string; // Add this
   id: string; // Add this
   onDelete?: (id: string) => void; // Add this
+  onEdit?: (id: string, newContent: string) => void; // Add this
+  onShare?: (id: string) => void; // Add this
 }
 
 export function SocialCard({
   type,
   link,
   title,
+  content, // Make sure this is passed
   hideControls = false,
   className,
   children,
   createdAt,
   id,
   onDelete,
+  onEdit,
+  onShare,
   ...props
 }: SocialCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState(content || link);
+
+  // Add save handler
+  const handleSave = async () => {
+    try {
+      await contentService.updateContent(id, editedContent);
+      toast.success("Content updated successfully");
+      onEdit?.(id, editedContent);
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Failed to update content:", error);
+      toast.error("Failed to update content");
+    }
+  };
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -646,71 +1123,117 @@ export function SocialCard({
     }
   };
 
-  function getPlatformStyles(type: string): string {
-    const styles = {
-      youtube: "bg-red-600/10 border-red-600/20 hover:bg-red-600/20",
-      twitter: "bg-sky-500/10 border-sky-500/20 hover:bg-sky-500/20",
-      instagram:
-        "bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-orange-500/10 border-pink-500/20 hover:from-purple-500/20 hover:via-pink-500/20 hover:to-orange-500/20",
-      linkedin: "bg-blue-700/10 border-blue-700/20 hover:bg-blue-700/20",
-      notion: "bg-gray-900/10 border-gray-900/20 hover:bg-gray-900/20",
-      eraser: `bg-gradient-to-r from-[#EC2C40]/10 to-[#00A9E5]/10 
-             border-[#EC2C40]/20 
-             hover:from-[#EC2C40]/20 hover:to-[#00A9E5]/20`,
-      excalidraw: "bg-[#6965db]/10 border-[#6965db]/20 hover:bg-[#6965db]/20",
-    };
-
-    return (
-      styles[type as keyof typeof styles] ||
-      "bg-white border-gray-200 hover:bg-gray-50"
-    );
-  }
+  // Update the SocialCard return JSX
   return (
     <>
       <div
         className={cn(
           "break-inside-avoid w-full",
           "transition-all duration-200",
-          "mb-4 sm:mb-6",
+          "mb-6",
+          "rounded-xl border shadow-sm",
+          "overflow-hidden",
           getPlatformStyles(type),
           className
         )}
         {...props}
       >
-        <CardHeader className="flex flex-row items-center justify-between gap-2 mb-3">
-          <CardTitle className="flex items-center gap-2 flex-1 min-w-0">
+        <CardHeader className="flex flex-row items-center justify-between gap-3 p-4 pb-0">
+          <CardTitle className="flex items-center gap-2.5 flex-1 min-w-0">
             <PlatformIcon type={type} />
-            <span className="truncate text-sm sm:text-base">{title}</span>
+            <span className="truncate text-sm font-medium text-gray-800">
+              {title}
+            </span>
           </CardTitle>
+
           {!hideControls && (
-            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            <div className="flex items-center gap-0.5 flex-shrink-0">
               <button
                 title="Copy link"
-                className="p-1.5 sm:p-2 hover:text-blue-500 transition-colors"
+                className="p-2 text-gray-500 hover:text-blue-500 transition-colors rounded-full hover:bg-blue-50"
                 onClick={copyLinkToClipboard}
               >
-                <ShareIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <ShareIcon className="w-4 h-4" />
               </button>
+              {type === "note" && (
+                <button
+                  title={isEditing ? "Save" : "Edit"}
+                  className="p-2 text-gray-500 hover:text-green-500 transition-colors rounded-full hover:bg-green-50"
+                  onClick={isEditing ? handleSave : () => setIsEditing(true)}
+                >
+                  {isEditing ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-4 h-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M3 12h18" />
+                      <path d="M12 3v18" />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-4 h-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M12 3v18" />
+                      <path d="M3 12h18" />
+                    </svg>
+                  )}
+                </button>
+              )}
               <button
                 title="Delete"
-                className="p-1.5 sm:p-2 hover:text-red-500 transition-colors"
+                className="p-2 text-gray-500 hover:text-red-500 transition-colors rounded-full hover:bg-red-50"
                 onClick={() => setIsDeleteDialogOpen(true)}
                 disabled={isDeleting}
               >
-                <TrashIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <TrashIcon className="w-4 h-4" />
               </button>
             </div>
           )}
         </CardHeader>
 
-        <CardContent>
-          <div className="aspect-video sm:aspect-auto">
-            <Embed type={type} link={link} title={title} />
+        <CardContent className="p-4 pt-3">
+          <div className="rounded-lg overflow-hidden">
+            {type === "note" && isEditing ? (
+              <textarea
+                value={editedContent}
+                onChange={(e) => setEditedContent(e.target.value)}
+                className="min-h-[120px] bg-white/50 border-yellow-200 focus:border-yellow-300 resize-none w-full p-2 rounded-md"
+                placeholder="Write your note here..."
+              />
+            ) : (
+              <Embed
+                type={type}
+                link={link}
+                content={type === "note" ? editedContent : link} // Pass content here
+                title={title}
+              />
+            )}
           </div>
         </CardContent>
 
-        <CardFooter className="text-sm text-gray-500">
-          Added on {format(new Date(createdAt), "MMMM d, yyyy")}
+        <CardFooter
+          className={cn(
+            "px-4 py-3",
+            getPlatformStyles(type),
+            "border-t border-transparent"
+          )}
+        >
+          <span className="text-sm text-gray-600">
+            Added on {format(new Date(createdAt), "MMMM d, yyyy")}
+          </span>
         </CardFooter>
       </div>
 
@@ -742,7 +1265,37 @@ export function SocialCard({
   );
 }
 
-// Add the MasonryGrid component to Card.tsx
+// Update the getPlatformStyles function
+function getPlatformStyles(type: string): string {
+  const styles = {
+    youtube: "bg-red-600/10 border-red-600/20 hover:bg-red-600/20",
+    twitter: "bg-sky-500/10 border-sky-500/20 hover:bg-sky-500/20",
+    instagram:
+      "bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-orange-500/10 border-pink-500/20 hover:from-purple-500/20 hover:via-pink-500/20 hover:to-orange-500/20",
+    linkedin: "bg-blue-700/10 border-blue-700/20 hover:bg-blue-700/20",
+    notion: "bg-gray-900/10 border-gray-900/20 hover:bg-gray-900/20",
+    eraser: `bg-gradient-to-r from-[#EC2C40]/10 to-[#00A9E5]/10 
+             border-[#EC2C40]/20 
+             hover:from-[#EC2C40]/20 hover:to-[#00A9E5]/20`,
+    excalidraw: "bg-[#6965db]/10 border-[#6965db]/20 hover:bg-[#6965db]/20",
+    note: "bg-gray-600/10 border-gray-600/20 hover:bg-gray-600/20",
+    medium: "bg-green-600/10 border-green-600/20 hover:bg-green-600/20",
+    github: "bg-gray-800/10 border-gray-900/20 hover:bg-gray-900/20",
+    figma: "bg-purple-600/10 border-purple-600/20 hover:bg-purple-600/20",
+    codepen: "bg-black/10 border-black/20 hover:bg-black/20",
+    googledocs: "bg-blue-500/10 border-blue-500/20 hover:bg-blue-500/20",
+    spotify: "bg-green-500/10 border-green-500/20 hover:bg-green-500/20",
+    miro: "bg-yellow-500/10 border-yellow-500/20 hover:bg-yellow-500/20",
+    facebook: "bg-blue-600/10 border-blue-600/20 hover:bg-blue-600/20",
+  };
+
+  return (
+    styles[type as keyof typeof styles] ||
+    "bg-white border-gray-100 hover:border-gray-200"
+  );
+}
+
+// Update MasonryGrid for better spacing
 interface MasonryGridProps {
   children: React.ReactNode;
   columns: number;
@@ -753,50 +1306,39 @@ interface MasonryGridProps {
 export function MasonryGrid({
   children,
   columns = 3,
-  gap = 6,
   className = "",
 }: MasonryGridProps) {
   const columnWrapper: Record<string, any[]> = {};
-  const result = [];
 
-  // Calculate columns based on screen size
-  const responsiveColumns = React.useMemo(() => {
-    if (typeof window === "undefined") return columns;
-    if (window.innerWidth < 640) return 1;
-    if (window.innerWidth < 1024) return 2;
-    return columns;
-  }, [columns]);
-
-  // Create columns
-  for (let i = 0; i < responsiveColumns; i++) {
+  // Create columns wrapper
+  for (let i = 0; i < columns; i++) {
     columnWrapper[`column${i}`] = [];
   }
 
-  // Split children into columns
+  // Distribute children into columns
   React.Children.forEach(children, (child, index) => {
-    const columnIndex = index % responsiveColumns;
+    const columnIndex = index % columns;
     columnWrapper[`column${columnIndex}`].push(child);
   });
 
-  // Create column divs
-  for (let i = 0; i < responsiveColumns; i++) {
-    result.push(
-      <div
-        key={i}
-        style={{
-          flex: 1,
-          marginLeft: i > 0 ? `${gap * 4}px` : "0",
-        }}
-        className="flex flex-col gap-4 sm:gap-6"
-      >
-        {columnWrapper[`column${i}`]}
-      </div>
-    );
-  }
+  // Calculate the width based on number of columns
+  const gridTemplateColumns = `repeat(${columns}, minmax(0, 1fr))`;
 
   return (
-    <div className={cn("flex flex-row w-full", "gap-4 sm:gap-6", className)}>
-      {result}
+    <div className={cn("w-full", className)}>
+      <div
+        className="grid gap-6 w-full"
+        style={{
+          gridTemplateColumns,
+          transition: "all 0.3s ease-in-out", // Smooth transition when changing columns
+        }}
+      >
+        {Object.keys(columnWrapper).map((key, columnIndex) => (
+          <div key={columnIndex} className="flex flex-col gap-6 w-full">
+            {columnWrapper[key]}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

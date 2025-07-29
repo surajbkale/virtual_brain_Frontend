@@ -20,8 +20,7 @@ export const authService = {
     });
 
     if (response.data.token) {
-      // localStorage.setItem("token", response.data.token);
-      localStorage.setItem("token", `bearer ${response.data.token}`);
+      localStorage.setItem("token", response.data.token);
     }
     return response.data;
   },
@@ -41,8 +40,7 @@ export const authService = {
       const response = await api.post<AuthResponse>("/api/v1/signup", payload);
 
       if (response.data.token) {
-        // localStorage.setItem("token", response.data.token);
-        localStorage.setItem("token", `bearer ${response.data.token}`);
+        localStorage.setItem("token", response.data.token);
       }
 
       return response.data;
