@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Dialog, DialogContent } from "./Dialog";
-import { Button } from "./Button";
+import { Button } from "./button";
 import { X, Copy } from "lucide-react";
 import { contentService } from "@/services/content.service";
 import { toast } from "sonner";

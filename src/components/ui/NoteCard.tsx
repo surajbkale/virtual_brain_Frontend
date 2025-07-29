@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Button } from "./Button";
+import { Button } from "./button";
 import { Textarea } from "./textarea";
 import { Check, Edit2, Trash } from "lucide-react";
 

@@ -10,7 +10,7 @@ import {
   Send,
 } from "lucide-react";
 import { SidebarTrigger } from "./app-sidebar";
-import { Button } from "./Button";
+import { Button } from "./button";
 import { Input } from "./input";
 import { toast } from "react-toastify";
 import { cn } from "@/lib/utils";

@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "./Dialog";
-import { Button } from "./Button";
+import { Button } from "./button";
 import { Input } from "./input";
 import { Label } from "./label";
 import { Textarea } from "./textarea"; // Import Textarea component

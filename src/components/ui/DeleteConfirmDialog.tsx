@@ -5,7 +5,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "./Dialog";
-import { Button } from "./Button";
+import { Button } from "./button";
 
 interface DeleteConfirmDialogProps {
   isOpen: boolean;

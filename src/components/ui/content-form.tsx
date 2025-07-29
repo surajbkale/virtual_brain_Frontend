@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/input";
 import {

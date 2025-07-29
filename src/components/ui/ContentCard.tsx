@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { Card, CardContent } from "./Card";
-import { Button } from "./Button";
+import { Button } from "./button";
 import { Share2 as ShareIcon } from "lucide-react";
 
 interface ContentCardProps {
