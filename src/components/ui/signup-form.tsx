@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface FormErrors {
-  Name?: string;
+  name?: string;
   email?: string;
   password?: string;
   general?: string;
@@ -43,7 +43,7 @@ export function SignupForm({
   ...props
 }: React.ComponentProps<"div">) {
   const navigate = useNavigate();
-  const [Name, setName] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -69,10 +69,9 @@ export function SignupForm({
 
     setLoading(true);
     try {
-      const response = await authService.signup(Name, email, password);
+      const response = await authService.signup(name, email, password);
       toast.success(response.message || "Account created successfully!");
       navigate("/login");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Signup error:", error);
       setErrors({
@@ -104,7 +103,7 @@ export function SignupForm({
           <Input
             type="text"
             placeholder="Name"
-            value={Name}
+            value={name}
             onChange={(e) => setName(e.target.value)}
             className="h-12 bg-white/20 border border-white/30 text-white placeholder:text-white/60 rounded-lg"
             required
