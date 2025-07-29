@@ -33,7 +33,7 @@ export function CreateContentModel({
     setLoading(true);
 
     try {
-      const response = await api.post(
+      await api.post(
         "/api/v1/content",
         {
           title,
