@@ -14,7 +14,7 @@ import { SocialCard, MasonryGrid } from "@/components/ui/Card";
 import { CreateContentModal } from "../components/ui/CreateContentModel";
 import { ShareContentModal } from "../components/ui/ShareContent";
 import { WelcomeGuide } from "@/components/ui/Welcome";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import "react-toastify/dist/ReactToastify.css";
 import { contentService } from "@/services/content.service";
 
