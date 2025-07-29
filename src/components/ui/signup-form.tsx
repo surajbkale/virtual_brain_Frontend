@@ -72,6 +72,7 @@ export function SignupForm({
       const response = await authService.signup(Name, email, password);
       toast.success(response.message || "Account created successfully!");
       navigate("/login");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Signup error:", error);
       setErrors({
