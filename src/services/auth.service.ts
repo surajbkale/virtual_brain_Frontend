@@ -6,7 +6,7 @@ interface AuthResponse {
 }
 
 interface SignupRequest {
-  Name: string;
+  name: string;
   email: string;
   password: string;
 }
@@ -26,13 +26,13 @@ export const authService = {
   },
 
   async signup(
-    Name: string,
+    name: string,
     email: string,
     password: string
   ): Promise<AuthResponse> {
     try {
       const payload: SignupRequest = {
-        Name,
+        name,
         email: email.toLowerCase(),
         password,
       };
